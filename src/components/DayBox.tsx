@@ -2,7 +2,7 @@ import { Grid, Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { list } from "../interfaces/meteoData";
 import { Maximize, NoEncryption } from "@mui/icons-material";
-import { coldTemp, hotTemp, PRIMARY } from "../constant/color";
+import { coldTemp, hotTemp, PRIMARY, SECONDARY } from "../constant/color";
 import { Link, useNavigate } from "react-router-dom";
 
 interface props {
@@ -15,19 +15,16 @@ export default function DayBox({ elem, index, cityName }: props) {
   let [actualDay, setactualDay] = useState<string>("Lunedì");
   const [minTemp, setMinTemp] = useState<number>(0);
   const [maxTemp, setMaxTemp] = useState<number>(0);
-
   const navigate = useNavigate();
 
   const handleColor = () => {
     if (index % 2 === 0) {
       setBgColor("#e6ebf5");
     } else {
-      setBgColor("white");
+      setBgColor(SECONDARY);
     }
   };
-  console.log("actualDay", elem);
   const handleCurrentDay = () => {
-    console.log(elem);
     const day = new Date(elem[0].dt_txt);
     switch (day.getDay()) {
       case 0:
@@ -57,30 +54,35 @@ export default function DayBox({ elem, index, cityName }: props) {
     }
   };
 
-  const hnadleMaxAndMin = () => {
-    let tempMax = elem[0].main.temp_max;
-    let tempMin = elem[0].main.temp_min;
-    elem.map((elem) => {
-      if (tempMin > elem.main.temp_min) {
-        tempMin = elem.main.temp_min;
-      }
-    });
-    elem.map((elem) => {
-      if (tempMax < elem.main.temp_max) {
-        tempMax = elem.main.temp_max;
-      }
-    });
-    setMaxTemp(tempMax);
-    setMinTemp(tempMin);
-  };
+  // const hnadleMaxAndMin1 = () => {
+  let tempMax = elem[0].main.temp;
+  let tempMin = elem[0].main.temp;
+  elem.map((elem) => {
+    if (tempMin > elem.main.temp) {
+      tempMin = elem.main.temp;
+    }
+  });
+  elem.map((elem) => {
+    if (tempMax < elem.main.temp) {
+      tempMax = elem.main.temp;
+    }
+  });
+  // console.log("contrtollare wui", elem);
+  // setMaxTemp(tempMax);
+  // setMinTemp(tempMin);
+  // };
   useEffect(() => {
     handleCurrentDay();
     handleColor();
-    hnadleMaxAndMin();
+    // hnadleMaxAndMin1();
   }, []);
 
   return (
-    <Link to={`/daypage?param=${elem[0].dt_txt}&city=${cityName}`}>
+    <Link
+      style={{ textDecoration: "none", color: PRIMARY }}
+      onClick={() => navigate("/")}
+      to={`/daypage?param=${elem[0].dt_txt}&city=${cityName}&actualDay=${actualDay}`}
+    >
       <Grid
         container
         alignItems={"center"}
@@ -121,10 +123,10 @@ export default function DayBox({ elem, index, cityName }: props) {
         <Grid item xs={4}>
           <Stack justifyContent={"end"} pl={5} flexDirection={"row"}>
             <Typography textAlign={"right"} color={coldTemp}>
-              {minTemp.toFixed(0)}°
+              {tempMin.toFixed(2)}°
             </Typography>
             <Typography ml={1} textAlign={"right"} color={hotTemp}>
-              {minTemp.toFixed(0)}°
+              {tempMax.toFixed(2)}°
             </Typography>
           </Stack>
         </Grid>

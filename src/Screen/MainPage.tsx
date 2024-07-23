@@ -1,9 +1,12 @@
 import {
+  Alert,
   Button,
+  FormControl,
   Grid,
   Paper,
   Stack,
   TextField,
+  ThemeProvider,
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
@@ -13,27 +16,32 @@ import { Token } from "@mui/icons-material";
 import { token } from "../constant/APIsettinga";
 import DayBox from "../components/DayBox";
 import { list, meteoData } from "../interfaces/meteoData";
+import { mainLayoutTheme } from "../constant/theme";
+import Nuvola503 from "../assets/Nuvola503.jpg";
+import WeekPage from "../components/WeekPage";
+import { useNavigate } from "react-router-dom";
 
 const arrayPlaceholder: number[] = [1, 2, 3, 4, 5];
 export default function MainPage() {
   const [cityName, setCityName] = useState<string>("chiuduno");
+  const [alert, setAlert] = useState<boolean>(false);
+  const [cityFrontName, setFrontCityName] = useState<string>("");
   const [fiveDaysMeteoData, setFiveDaysMeteoData] = useState<list[][]>([]);
+  const navigate = useNavigate();
 
-  const getMeteo = async () => {
+  const getMeteo = async (city: string) => {
     try {
       let response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=metric&lang=it&appid=${token}`
+        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&lang=it&appid=${token}`
+        // `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=metric&lang=it&appid=${token}`
       );
       if (response.ok) {
+        setCityName("");
         const meteoData: meteoData = await response.json();
         console.log(meteoData);
+        setFrontCityName(city);
         const now: Date = new Date();
         const arrayOfDayWeathers: list[][] = [];
-        // const day1 = meteoData.list.filter((elem) => {
-        //   const a = new Date(elem.dt_txt).getDay();
-        //   return a === now.getDay();
-        //   arrayOfDayWeathers.push(day1);
-        // });
         for (let i = 0; i < 5; i++) {
           const day = meteoData.list.filter((elem) => {
             const a = new Date(elem.dt_txt).getDay();
@@ -44,29 +52,54 @@ export default function MainPage() {
             arrayOfDayWeathers.push(day);
           }
         }
-        console.log(arrayOfDayWeathers);
+
+        console.log("array che ci interessa", arrayOfDayWeathers);
         setFiveDaysMeteoData(arrayOfDayWeathers);
       } else {
         throw new Error(`errore nella response del meteo`);
       }
     } catch (error) {
       console.log(error, "error");
+      setAlert(true);
+      setTimeout(() => setAlert(false), 2000);
     }
   };
 
+  const handlegetMeteo = (city: string) => {
+    getMeteo(city);
+    console.log(city);
+  };
+
   useEffect(() => {
-    getMeteo();
+    handlegetMeteo(cityName);
   }, []);
 
   return (
-    <MainLayout>
-      <Grid
-        bgcolor={"#b2b2b2"}
-        container
-        justifyContent={"center"}
-        paddingBottom={3}
-      >
-        <Grid item xs={12} lg={8} mx={1}>
+    <ThemeProvider theme={mainLayoutTheme}>
+      {alert && (
+        <Alert
+          sx={{
+            position: "absolute",
+            top: "19.5%",
+            // textAlign: "center",
+            width: "90%",
+            // left: "25%",
+            fontSize: "0.8em",
+            zIndex: 2,
+          }}
+        >
+          la citta non esiste riprova!
+        </Alert>
+      )}
+      <Grid flex={1} container justifyContent={"center"}>
+        <Grid
+          // bgcolor={"#b2b2b2"}
+          className="image"
+          item
+          xs={12}
+          px={2}
+          sx={{ backgroundImage: `url(${Nuvola503})` }}
+        >
           <Stack
             my={4}
             justifyContent={"center"}
@@ -74,59 +107,80 @@ export default function MainPage() {
             flexDirection={"row"}
             alignItems={"center"}
           >
-            <TextField
-              sx={{ width: "80%" }}
-              InputProps={{
-                style: {
-                  borderRadius: "12px",
-                  backgroundColor: "white",
-                },
-              }}
-              size="small"
-              id="outlined-search"
-              label="Search field"
-              type="search"
-            />
+            <FormControl>
+              <Stack flexDirection={"row"}>
+                <TextField
+                  sx={{ width: "80%" }}
+                  InputProps={{
+                    style: {
+                      borderRadius: "12px 0px 0px 12px",
+                      backgroundColor: "white",
+                    },
+                  }}
+                  size="small"
+                  id="outlined-search"
+                  // label="Search field"
+                  type="search"
+                  value={cityName}
+                  onChange={(e) => {
+                    setCityName(e.target.value);
+                  }}
+                />
+                <Button
+                  size="small"
+                  sx={{
+                    bgcolor: PRIMARY,
+                  }}
+                  variant="contained"
+                  onClick={() => {
+                    console.log("e andato");
+                    getMeteo(cityName);
+                    navigate("/");
+                  }}
+                >
+                  cerca
+                </Button>
+              </Stack>
+            </FormControl>
           </Stack>
-          <Stack flexDirection={"row"} justifyContent={"center"}>
-            <Button sx={{ bgcolor: PRIMARY }} variant="contained">
+          <Stack flexDirection={"row"} justifyContent={"center"} my={5}>
+            <Button
+              sx={{ bgcolor: PRIMARY }}
+              variant="contained"
+              onClick={() => {
+                handlegetMeteo("bergamo");
+                navigate("/");
+              }}
+            >
               Bergamo
             </Button>
             <Button
               sx={{ bgcolor: PRIMARY, marginX: "2%" }}
               variant="contained"
-              onClick={getMeteo}
+              onClick={() => {
+                handlegetMeteo("brescia");
+                navigate("/");
+              }}
             >
               Brescia
             </Button>
-            <Button sx={{ bgcolor: PRIMARY }} variant="contained">
+            <Button
+              sx={{ bgcolor: PRIMARY }}
+              onClick={() => {
+                handlegetMeteo("milano");
+                navigate("/");
+              }}
+              variant="contained"
+            >
               Milano
             </Button>
           </Stack>
-          <Paper elevation={5} sx={{ borderRadius: "8px", marginY: "2em" }}>
-            <Stack>
-              <Stack my={2}>
-                <Typography px={2} pb={2} variant="h4">
-                  Previsioni Meteo per la città di{" "}
-                  {cityName.slice(0, 1).toUpperCase()}
-                  {cityName.slice(1)}
-                </Typography>
-                {fiveDaysMeteoData &&
-                  fiveDaysMeteoData.map((elem: list[], i: number) => {
-                    return (
-                      <DayBox
-                        key={i}
-                        elem={elem}
-                        index={i}
-                        cityName={cityName}
-                      />
-                    );
-                  })}
-              </Stack>
-            </Stack>
-          </Paper>
+          <WeekPage
+            cityFrontName={cityFrontName}
+            fiveDaysMeteoData={fiveDaysMeteoData}
+          />
         </Grid>
       </Grid>
-    </MainLayout>
+    </ThemeProvider>
   );
 }

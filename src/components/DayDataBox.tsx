@@ -1,6 +1,8 @@
-import { Stack, Typography } from "@mui/material";
+import { Grid, Stack, ThemeProvider, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { list } from "../interfaces/meteoData";
+import { SECONDARY, THIRD } from "../constant/color";
+import { dayDataBoxTypoTheme } from "../constant/theme";
 
 interface props {
   elem: list;
@@ -13,11 +15,11 @@ export default function DayDataBox({ elem, index }: props) {
 
   const handleColor = () => {
     if (index % 2 === 0) {
-      setBgColor("#e6ebf5");
+      setBgColor(SECONDARY);
     } else {
-      setBgColor("white");
+      setBgColor(SECONDARY);
     }
-    if (elem.rain["3h"]) {
+    if (elem.rain) {
       if (elem.rain["3h"] <= 2) {
         setPrecipitazioni("minime");
       } else if (2 < elem.rain["3h"] && elem.rain["3h"] >= 4) {
@@ -34,32 +36,48 @@ export default function DayDataBox({ elem, index }: props) {
     handleColor();
   }, []);
   return (
-    <Stack
-      px={1}
-      bgcolor={bgcolor}
-      flexDirection={"row"}
-      alignItems={"center"}
-      justifyContent={"space-around"}
-    >
-      <Typography>{elem.main.temp}°</Typography>
-      <Typography mx={2}>{new Date(elem.dt_txt).getHours()}:00</Typography>
-      <Stack flexDirection={"column"} alignItems={"center"}>
-        <img
-          width={75}
-          src={`http://openweathermap.org/img/w/${elem.weather[0].icon}.png`}
-          alt="imagine del meteo"
-        />
-        {elem.rain && (
-          <Typography>
-            {preipitazioni} {elem.rain["3h"]}mm
-          </Typography>
-        )}
-      </Stack>
-      <Stack>
-        <Typography>{elem.main.humidity}%</Typography>
-        <Typography>{elem.wind.speed}Km/h</Typography>
-        <Typography>{}</Typography>
-      </Stack>
-    </Stack>
+    <ThemeProvider theme={dayDataBoxTypoTheme}>
+      <Grid
+        container
+        px={1}
+        // bgcolor={bgcolor}
+        flexDirection={"row"}
+        justifyContent={"center"}
+        alignItems={"center"}
+      >
+        <Grid item xs={3}>
+          <Typography>{elem.main.temp}°</Typography>
+        </Grid>
+        <Grid item xs={3} flexDirection={"row"} justifyContent={"start"}>
+          <Typography mx={2}>{new Date(elem.dt_txt).getHours()}:00</Typography>
+        </Grid>
+        <Grid item xs={3}>
+          <Stack flexDirection={"column"} alignItems={"center"}>
+            <img
+              width={50}
+              src={`http://openweathermap.org/img/w/${elem.weather[0].icon}.png`}
+              alt="imagine del meteo"
+            />
+            {elem.rain && (
+              <Typography sx={{ fontSize: "0.7em" }}>
+                {preipitazioni} {elem.rain["3h"]}mm
+              </Typography>
+            )}
+          </Stack>
+        </Grid>
+        <Grid item xs={1}></Grid>
+        <Grid item xs={2}>
+          <Stack
+            flexDirection={"column"}
+            alignItems={"start"}
+            justifyContent={"start"}
+          >
+            <Typography>{elem.main.humidity}%</Typography>
+            <Typography>{elem.wind.speed}Km/h</Typography>
+            <Typography>{}</Typography>
+          </Stack>
+        </Grid>
+      </Grid>
+    </ThemeProvider>
   );
 }

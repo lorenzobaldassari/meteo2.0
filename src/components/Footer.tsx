@@ -12,6 +12,9 @@ export default function Footer() {
       flexDirection={"row"}
       py={3}
       bgcolor={PRIMARY}
+      // position={"absolute"}
+      // bottom={0}
+      // width={"100%"}
     >
       <IconButton aria-label="delete" disabled>
         <InstagramIcon sx={{ color: "white" }} />
